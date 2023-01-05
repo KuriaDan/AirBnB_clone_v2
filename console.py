@@ -23,7 +23,7 @@ class HBNBCommand(cmd.Cmd):
                'State': State, 'City': City, 'Amenity': Amenity,
                'Review': Review
               }
-    dot_cmds = ['all', 'count', 'show', 'destroy', 'update']
+    dot_cmds = ['all', 'count', 'show', 'destroy', 'update', 'create']
     types = {
              'number_rooms': int, 'number_bathrooms': int,
              'max_guest': int, 'price_by_night': int,
@@ -73,7 +73,7 @@ class HBNBCommand(cmd.Cmd):
                 pline = pline[2].strip()  # pline is now str
                 if pline:
                     # check for *args or **kwargs
-                    if pline[0] is '{' and pline[-1] is'}'\
+                    if pline[0] == '{' and pline[-1] == '}'\
                             and type(eval(pline)) is dict:
                         _args = pline
                     else:
@@ -114,15 +114,60 @@ class HBNBCommand(cmd.Cmd):
         pass
 
     def do_create(self, args):
-        """ Create an object of any class"""
+        """Create a new instance of a class.
+
+        Usage: create CLASS NAME param1=value1 param2=value2 ...
+        """
+        # Check if the class name is missing
         if not args:
             print("** class name missing **")
             return
-        elif args not in HBNBCommand.classes:
+
+        # Split the arguments into the class name and parameters
+        class_name, *params = args.split()
+
+        # Check if the class exists in the classes dictionary
+        if class_name not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
-        new_instance = HBNBCommand.classes[args]()
+
+        # Get the class object from the classes dictionary
+        cls = HBNBCommand.classes[class_name]
+
+        # Create a new instance of the class
+        new_instance = cls()
+
+        # Parse the parameters and set them on the new instance
+        for param in params:
+            # Split the parameter into the key and value
+            key, value = param.split("=")
+
+            # Check if the value is a string
+            if value.startswith('"'):
+                # Strip the quotes from the string value
+                value = value.strip('"')
+
+                # Unescape any backslashes in the string value
+                value = value.replace("\\", "")
+
+            # Try to convert the value to a float
+            try:
+                value = float(value)
+
+                # Check if the float value is actually an integer
+                if value.is_integer():
+                    value = int(value)
+            except ValueError:
+                # If the value is not a float, leave it as a string
+                pass
+
+            # Set the attribute on the new instance
+            setattr(new_instance, key, value)
+
+        # Save the instance to the JSON file
         storage.save()
+
+        # Print the id of the new instance
         print(new_instance.id)
         storage.save()
 
@@ -272,7 +317,7 @@ class HBNBCommand(cmd.Cmd):
                 args.append(v)
         else:  # isolate args
             args = args[2]
-            if args and args[0] is '\"':  # check for quoted arg
+            if args and args[0] == '\"':  # check for quoted arg
                 second_quote = args.find('\"', 1)
                 att_name = args[1:second_quote]
                 args = args[second_quote + 1:]
@@ -280,10 +325,10 @@ class HBNBCommand(cmd.Cmd):
             args = args.partition(' ')
 
             # if att_name was not quoted arg
-            if not att_name and args[0] is not ' ':
+            if not att_name and args[0] != ' ':
                 att_name = args[0]
             # check for quoted val arg
-            if args[2] and args[2][0] is '\"':
+            if args[2] and args[2][0] == '\"':
                 att_val = args[2][1:args[2].find('\"', 1)]
 
             # if att_val was not quoted arg
