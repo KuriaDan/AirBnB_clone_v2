@@ -23,7 +23,7 @@ class HBNBCommand(cmd.Cmd):
                'State': State, 'City': City, 'Amenity': Amenity,
                'Review': Review
               }
-    dot_cmds = ['all', 'count', 'show', 'destroy', 'update', 'create']
+    dot_cmds = ['all', 'count', 'show', 'destroy', 'update']
     types = {
              'number_rooms': int, 'number_bathrooms': int,
              'max_guest': int, 'price_by_night': int,
@@ -165,6 +165,7 @@ class HBNBCommand(cmd.Cmd):
             setattr(new_instance, key, value)
 
         # Save the instance to the JSON file
+
         storage.save()
 
         # Print the id of the new instance
